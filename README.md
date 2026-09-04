@@ -1,10 +1,3 @@
-Yesterday 10:10 PM
-Pasted markdown.md
-File
-mala asa format made pahije
-
-हो 👍 खाली Samanvay README सारख्याच professional structure मध्ये, पण पूर्णपणे AYURLEX साठी तयार केलेला README.md आहे.
-
 # 🌿 AYURLEX
 
 [![AYURLEX](https://img.shields.io/badge/AYURLEX-Ayurveda%20IPR%20Research-0f766e?style=for-the-badge)](#-ayurlex)
