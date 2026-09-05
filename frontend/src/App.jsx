@@ -7,151 +7,163 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleResearch = async () => {
-    if (!question.trim() || loading) return;
+  const suggestions = [
+    "Can I patent my new Ayurvedic herbal formulation in India?",
+    "माझ्या Ayurvedic formulation ला भारतात patent मिळू शकतो का?",
+    "माझ्या herbal product साठी trademark registration कसे करायचे?",
+    "What are the IPR rules for traditional Ayurvedic knowledge?",
+  ];
 
+  const askQuestion = async (text = question) => {
+    const trimmedQuestion = text.trim();
+
+    if (!trimmedQuestion) {
+      return;
+    }
+
+    setQuestion(trimmedQuestion);
     setLoading(true);
     setError("");
     setResult(null);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/query", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          question: question.trim(),
-        }),
-      });
+      const response = await fetch(
+        "http://127.0.0.1:8001/query",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            question: trimmedQuestion,
+          }),
+        }
+      );
 
       if (!response.ok) {
-        throw new Error("Backend request failed");
+        throw new Error(
+          `Backend request failed: ${response.status}`
+        );
       }
 
       const data = await response.json();
+
       setResult(data);
     } catch (err) {
       console.error(err);
 
       setError(
-        "AYURLEX backend शी connection होत नाही. FastAPI server चालू आहे का ते check करा."
+        "AYURLEX backend शी connection होत नाही. Backend port 8001 वर चालू आहे का ते check करा."
       );
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    askQuestion();
+  };
+
   const handleKeyDown = (event) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      handleResearch();
+      askQuestion();
     }
   };
 
-  const handleNewResearch = () => {
+  const newResearch = () => {
     setQuestion("");
     setResult(null);
     setError("");
   };
 
-  const useSuggestion = (text) => {
-    setQuestion(text);
-  };
-
   return (
-    <div className="app">
+    <div className="app-shell">
 
-      {/* ================= SIDEBAR ================= */}
+      {/* =========================
+          SIDEBAR
+      ========================= */}
 
       <aside className="sidebar">
 
         <div className="brand">
-          <div className="brand-text">
+          <div className="brand-name">
             AYURLEX
           </div>
 
           <div className="brand-subtitle">
-            Ayurveda IPR Research
+            IPR & Regulatory Research
           </div>
         </div>
 
-
         <button
-          className="new-research"
-          onClick={handleNewResearch}
+          className="new-research-btn"
+          onClick={newResearch}
         >
-          <span className="plus">+</span>
-          New Research
+          <span className="plus-icon">
+            +
+          </span>
+
+          <span>
+            New Research
+          </span>
         </button>
 
+        <nav className="sidebar-nav">
 
-        <div className="nav-section">
-
-          <div className="nav-title">
-            RESEARCH
+          <div className="nav-section-title">
+            WORKSPACE
           </div>
 
           <button className="nav-item active">
-            <span>Research</span>
+            Research
           </button>
 
           <button className="nav-item">
-            <span>Knowledge Base</span>
+            Knowledge Base
           </button>
 
           <button className="nav-item">
-            <span>Legal Sources</span>
+            Legal Sources
           </button>
 
           <button className="nav-item">
-            <span>Saved Research</span>
+            Saved Research
           </button>
 
-        </div>
-
+        </nav>
 
         <div className="recent-section">
 
-          <div className="nav-title">
+          <div className="nav-section-title">
             RECENT RESEARCH
           </div>
 
-          <button className="recent-item">
-            <span>
-              Ayurvedic patent research
-            </span>
-          </button>
+          <div className="recent-item">
+            Ayurvedic patentability
+          </div>
 
-          <button className="recent-item">
-            <span>
-              Ayurvedic trademark
-            </span>
-          </button>
+          <div className="recent-item">
+            Traditional knowledge
+          </div>
 
-          <button className="recent-item">
-            <span>
-              Biodiversity requirements
-            </span>
-          </button>
-
-          <button className="recent-item">
-            <span>
-              Traditional knowledge
-            </span>
-          </button>
+          <div className="recent-item">
+            Herbal formulation IPR
+          </div>
 
         </div>
 
-
         <div className="sidebar-footer">
 
-          <div className="sidebar-line">
-            Research. Protect. Preserve.
+          <div className="footer-line"></div>
+
+          <div className="footer-text">
+            AI-powered research assistance
           </div>
 
-          <div className="sidebar-muted">
-            AI for Ayurveda. Law for Tomorrow.
+          <div className="footer-version">
+            AYURLEX v0.1.0
           </div>
 
         </div>
@@ -159,429 +171,546 @@ function App() {
       </aside>
 
 
-      {/* ================= MAIN ================= */}
+      {/* =========================
+          MAIN AREA
+      ========================= */}
 
-      <main className="main-content">
+      <main className="main-area">
 
-        {/* Top Bar */}
+        {/* TOP BAR */}
 
         <header className="topbar">
 
           <div className="topbar-title">
-            AYURLEX Research
+            Research
           </div>
 
-          <div className="profile">
-            <div className="profile-avatar">
-              V
-            </div>
+          <div className="topbar-status">
 
-            <span>
-              User
-            </span>
+            <span className="status-dot"></span>
 
-            <span className="profile-arrow">
-              ▾
-            </span>
+            System Ready
+
           </div>
 
         </header>
 
 
-        {/* ================= CHAT AREA ================= */}
+        {/* CONTENT */}
 
-        <div className="chat-area">
+        <section className="content-area">
 
-          {/* EMPTY STATE */}
+          {!result && !loading && !error ? (
 
-          {!result && !loading && (
+            <div className="welcome-screen">
 
-            <section className="welcome">
+              <div className="welcome-content">
 
-              <div className="welcome-line"></div>
+                <div className="welcome-label">
+                  AI RESEARCH ASSISTANT
+                </div>
 
-              <h1>
-                What would you like to research?
-              </h1>
+                <h1>
+                  What would you like
+                  <br />
+                  to research?
+                </h1>
 
-              <p>
-                Ask AYURLEX about Ayurveda IPR, patents,
-                trademarks, traditional knowledge,
-                biodiversity, or regulatory requirements.
-              </p>
+                <p className="welcome-description">
+                  Ask questions about Ayurveda,
+                  intellectual property,
+                  traditional knowledge,
+                  biodiversity and regulatory
+                  requirements.
+                </p>
 
+                <div className="suggestions">
 
-              <div className="suggestions">
+                  {suggestions.map(
+                    (suggestion, index) => (
 
-                <button
-                  onClick={() =>
-                    useSuggestion(
-                      "Can I patent my new Ayurvedic herbal formulation in India?"
+                      <button
+                        key={index}
+                        className="suggestion-card"
+                        onClick={() =>
+                          askQuestion(suggestion)
+                        }
+                      >
+
+                        <span>
+                          {suggestion}
+                        </span>
+
+                        <span className="suggestion-arrow">
+                          →
+                        </span>
+
+                      </button>
+
                     )
-                  }
-                >
-                  <span className="suggestion-title">
-                    Patentability
-                  </span>
+                  )}
 
-                  <span className="suggestion-text">
-                    Can I patent my new Ayurvedic formulation?
-                  </span>
-                </button>
-
-
-                <button
-                  onClick={() =>
-                    useSuggestion(
-                      "माझ्या आयुर्वेदिक formulation ला भारतात patent मिळू शकतो का?"
-                    )
-                  }
-                >
-                  <span className="suggestion-title">
-                    Marathi Research
-                  </span>
-
-                  <span className="suggestion-text">
-                    आयुर्वेदिक formulation साठी patent
-                    requirements काय आहेत?
-                  </span>
-                </button>
-
-
-                <button
-                  onClick={() =>
-                    useSuggestion(
-                      "What are the biodiversity requirements for using medicinal plants in India?"
-                    )
-                  }
-                >
-                  <span className="suggestion-title">
-                    Biodiversity
-                  </span>
-
-                  <span className="suggestion-text">
-                    Requirements for medicinal plant use.
-                  </span>
-                </button>
+                </div>
 
               </div>
 
-            </section>
+            </div>
 
-          )}
+          ) : (
 
+            <div className="research-result">
 
-          {/* USER QUESTION */}
+              {/* USER QUESTION */}
 
-          {result && (
-
-            <section className="conversation">
-
-              <div className="user-message">
+              <div className="question-block">
 
                 <div className="message-label">
-                  YOU
+                  YOUR QUESTION
                 </div>
 
                 <div className="user-question">
-                  {result.question}
+                  {question}
                 </div>
 
               </div>
 
 
-              {/* AI RESPONSE */}
+              {/* LOADING */}
 
-              <div className="ai-response">
+              {loading && (
 
-                <div className="ai-header">
+                <div className="loading-block">
 
-                  <div className="ai-name">
-                    AYURLEX
+                  <div className="loading-indicator">
+
+                    <span></span>
+                    <span></span>
+                    <span></span>
+
                   </div>
 
-                  <div className="ai-label">
-                    Research Assistant
+                  <div className="loading-text">
+                    Analyzing your research question...
                   </div>
 
                 </div>
 
+              )}
 
-                <div className="answer">
 
-                  <p>
-                    Your question has been analysed based on
-                    the available research classification.
-                  </p>
+              {/* ERROR */}
 
-                  <p>
-                    AYURLEX identified the relevant domain,
-                    IPR category, research intent and
-                    jurisdiction for further evidence-based
-                    research.
-                  </p>
+              {error && (
+
+                <div className="error-block">
+
+                  <div className="error-title">
+                    Connection Error
+                  </div>
+
+                  <div className="error-message">
+                    {error}
+                  </div>
+
+                  <button
+                    className="retry-btn"
+                    onClick={() => askQuestion()}
+                  >
+                    Try Again
+                  </button>
 
                 </div>
 
+              )}
 
-                {/* KEY ANALYSIS */}
 
-                <section className="analysis">
+              {/* RESULT */}
 
-                  <div className="section-label">
-                    KEY ANALYSIS
+              {result && !loading && (
+
+                <div className="answer-section">
+
+                  {/* ANSWER */}
+
+                  <div className="answer-block">
+
+                    <div className="message-label">
+                      AYURLEX
+                    </div>
+
+                    <h2>
+                      Research Analysis
+                    </h2>
+
+                    <p className="answer-text">
+                      Your question has been analyzed
+                      using AYURLEX's research pipeline.
+                      The detected research parameters
+                      are shown below.
+                    </p>
+
                   </div>
 
 
-                  <div className="analysis-grid">
+                  {/* KEY ANALYSIS */}
 
-                    <div className="analysis-card">
+                  <div className="section-block">
 
-                      <span>
-                        DOMAIN
-                      </span>
-
-                      <strong>
-                        {result.query_analysis?.domain ||
-                          "Not detected"}
-                      </strong>
-
+                    <div className="section-heading">
+                      KEY ANALYSIS
                     </div>
 
+                    <div className="analysis-grid">
 
-                    <div className="analysis-card">
+                      {/* DOMAIN */}
 
-                      <span>
-                        IPR TYPE
-                      </span>
+                      <div className="analysis-card">
 
-                      <strong>
-                        {result.ipr_classification?.ipr_type ||
-                          result.query_analysis?.ipr_type ||
-                          "Not detected"}
-                      </strong>
+                        <span className="analysis-label">
+                          DOMAIN
+                        </span>
 
-                    </div>
+                        <strong>
+                          {result.query_analysis?.domain ||
+                            "Unknown"}
+                        </strong>
 
-
-                    <div className="analysis-card">
-
-                      <span>
-                        INTENT
-                      </span>
-
-                      <strong>
-                        {result.query_analysis?.intent ||
-                          "Not detected"}
-                      </strong>
-
-                    </div>
+                      </div>
 
 
-                    <div className="analysis-card">
+                      {/* IPR TYPE */}
 
-                      <span>
-                        JURISDICTION
-                      </span>
+                      <div className="analysis-card">
 
-                      <strong>
-                        {result.jurisdiction?.jurisdiction ||
-                          "Not detected"}
-                      </strong>
+                        <span className="analysis-label">
+                          IPR TYPE
+                        </span>
 
-                    </div>
-
-                  </div>
-
-                </section>
-
-
-                {/* KEY EVIDENCE */}
-
-                <section className="evidence">
-
-                  <div className="section-label">
-                    KEY EVIDENCE
-                  </div>
-
-                  <div className="evidence-list">
-
-                    <div className="evidence-item">
-                      <span className="check">
-                        ✓
-                      </span>
-
-                      <span>
-                        IPR category identified as{" "}
                         <strong>
                           {result.ipr_classification?.ipr_type ||
-                            "research"}
-                        </strong>.
-                      </span>
-                    </div>
+                            result.query_analysis?.ipr_type ||
+                            "Unknown"}
+                        </strong>
+
+                      </div>
 
 
-                    <div className="evidence-item">
-                      <span className="check">
-                        ✓
-                      </span>
+                      {/* INTENT */}
 
-                      <span>
-                        Jurisdiction identified as{" "}
-                        <strong>
-                          {result.jurisdiction?.jurisdiction ||
-                            "India"}
-                        </strong>.
-                      </span>
-                    </div>
+                      <div className="analysis-card">
 
+                        <span className="analysis-label">
+                          INTENT
+                        </span>
 
-                    <div className="evidence-item">
-                      <span className="check">
-                        ✓
-                      </span>
-
-                      <span>
-                        Research intent identified as{" "}
                         <strong>
                           {result.query_analysis?.intent ||
-                            "General research"}
-                        </strong>.
-                      </span>
+                            "Research"}
+                        </strong>
+
+                      </div>
+
+
+                      {/* JURISDICTION */}
+
+                      <div className="analysis-card">
+
+                        <span className="analysis-label">
+                          JURISDICTION
+                        </span>
+
+                        <strong>
+                          {result.jurisdiction?.jurisdiction ||
+                            result.query_analysis?.jurisdiction ||
+                            "Unknown"}
+                        </strong>
+
+                      </div>
+
+
+                      {/* LANGUAGE */}
+
+                      <div className="analysis-card language-card">
+
+                        <span className="analysis-label">
+                          LANGUAGE
+                        </span>
+
+                        <strong>
+                          {result.detected_language ||
+                            "Unknown"}
+                        </strong>
+
+                      </div>
+
                     </div>
 
                   </div>
 
-                </section>
 
+                  {/* KEYWORDS */}
 
-                {/* SOURCES */}
+                  <div className="section-block">
 
-                <section className="sources">
+                    <div className="section-heading">
+                      DETECTED KEYWORDS
+                    </div>
 
-                  <div className="section-label">
-                    RESEARCH SOURCES
+                    <div className="keyword-list">
+
+                      {result.query_analysis?.keywords?.length > 0 ? (
+
+                        result.query_analysis.keywords.map(
+                          (keyword, index) => (
+
+                            <span
+                              className="keyword"
+                              key={index}
+                            >
+                              {keyword}
+                            </span>
+
+                          )
+                        )
+
+                      ) : (
+
+                        <span className="empty-value">
+                          No specific keywords detected
+                        </span>
+
+                      )}
+
+                    </div>
+
                   </div>
 
 
-                  <div className="source-list">
+                  {/* RESEARCH SCOPE */}
 
-                    {result.jurisdiction?.source_scope?.map(
-                      (source, index) => (
+                  <div className="section-block">
+
+                    <div className="section-heading">
+                      RESEARCH SCOPE
+                    </div>
+
+                    <div className="evidence-box">
+
+                      <div className="evidence-title">
+                        Source Scope
+                      </div>
+
+                      {result.jurisdiction?.source_scope?.length > 0 ? (
+
+                        <ul className="scope-list">
+
+                          {result.jurisdiction.source_scope.map(
+                            (source, index) => (
+
+                              <li key={index}>
+                                {source}
+                              </li>
+
+                            )
+                          )}
+
+                        </ul>
+
+                      ) : (
+
+                        <div className="empty-value">
+                          No source scope detected
+                        </div>
+
+                      )}
+
+                    </div>
+
+                  </div>
+
+
+                  {/* RESEARCH PLAN */}
+
+                  {result.research_plan && (
+
+                    <div className="section-block">
+
+                      <div className="section-heading">
+                        AI RESEARCH PLAN
+                      </div>
+
+                      <div className="evidence-box">
+
+                        <div className="evidence-title">
+                          Orchestrator Plan
+                        </div>
+
+                        {result.research_plan.research_steps?.length > 0 && (
+
+                          <ul className="scope-list">
+
+                            {result.research_plan.research_steps.map(
+                              (step, index) => (
+
+                                <li key={index}>
+                                  {step}
+                                </li>
+
+                              )
+                            )}
+
+                          </ul>
+
+                        )}
+
+                      </div>
+
+                    </div>
+
+                  )}
+
+
+                  {/* SOURCE CATEGORIES */}
+
+                  {result.research_plan?.source_categories?.length > 0 && (
+
+                    <div className="section-block">
+
+                      <div className="section-heading">
+                        PLANNED SOURCE CATEGORIES
+                      </div>
+
+                      <div className="keyword-list">
+
+                        {result.research_plan.source_categories.map(
+                          (source, index) => (
+
+                            <span
+                              className="keyword"
+                              key={index}
+                            >
+                              {source}
+                            </span>
+
+                          )
+                        )}
+
+                      </div>
+
+                    </div>
+
+                  )}
+
+
+                  {/* CONFIDENCE */}
+
+                  <div className="section-block">
+
+                    <div className="section-heading">
+                      CLASSIFICATION CONFIDENCE
+                    </div>
+
+                    <div className="confidence-row">
+
+                      <span className="confidence-label">
+                        IPR Classification
+                      </span>
+
+                      <span
+                        className={`confidence-badge ${
+                          result.ipr_classification?.confidence
+                            ?.toLowerCase()
+                            .replace(" ", "-") || ""
+                        }`}
+                      >
+                        {result.ipr_classification?.confidence ||
+                          "Unknown"}
+                      </span>
+
+                    </div>
+
+                  </div>
+
+
+                  {/* SOURCES */}
+
+                  <div className="section-block">
+
+                    <div className="section-heading">
+                      RESEARCH SOURCES
+                    </div>
+
+                    <div className="sources-grid">
+
+                      {(
+                        result.jurisdiction?.source_scope ||
+                        []
+                      ).map((source, index) => (
 
                         <div
-                          className="source-row"
+                          className="source-card"
                           key={index}
                         >
 
-                          <span className="source-number">
-                            {String(index + 1).padStart(2, "0")}
-                          </span>
+                          <div className="source-number">
+                            {String(index + 1).padStart(
+                              2,
+                              "0"
+                            )}
+                          </div>
 
-                          <span className="source-name">
+                          <div className="source-name">
                             {source}
-                          </span>
-
-                          <span className="source-arrow">
-                            →
-                          </span>
+                          </div>
 
                         </div>
 
-                      )
-                    )}
+                      ))}
 
-                  </div>
-
-                </section>
-
-
-                {/* CONFIDENCE */}
-
-                <section className="confidence">
-
-                  <div>
-
-                    <div className="section-label">
-                      CONFIDENCE
-                    </div>
-
-                    <div className="confidence-text">
-                      Based on current classification
                     </div>
 
                   </div>
 
 
-                  <div className="confidence-badge">
+                  {/* DISCLAIMER */}
 
-                    {result.ipr_classification?.confidence ||
-                      "Low"}
+                  <div className="disclaimer">
+
+                    <div className="disclaimer-title">
+                      Research Assistance Notice
+                    </div>
+
+                    <div className="disclaimer-text">
+                      AYURLEX provides AI-powered
+                      research assistance based on
+                      detected query parameters.
+                      It is not a substitute for
+                      professional legal advice.
+                    </div>
 
                   </div>
-
-                </section>
-
-
-                {/* DISCLAIMER */}
-
-                <div className="research-disclaimer">
-
-                  AYURLEX is a research assistance platform.
-                  Final legal conclusions require verified
-                  evidence and professional legal advice.
 
                 </div>
 
-              </div>
-
-            </section>
-
-          )}
-
-
-          {/* LOADING */}
-
-          {loading && (
-
-            <div className="loading">
-
-              <div className="loading-title">
-                AYURLEX is researching
-              </div>
-
-              <div className="loading-text">
-                Analysing your question and identifying
-                the relevant research scope...
-              </div>
-
-              <div className="loading-bar">
-                <span></span>
-              </div>
+              )}
 
             </div>
 
           )}
 
-
-          {/* ERROR */}
-
-          {error && (
-
-            <div className="error-box">
-              {error}
-            </div>
-
-          )}
-
-        </div>
+        </section>
 
 
-        {/* ================= COMPOSER ================= */}
+        {/* =========================
+            COMPOSER
+        ========================= */}
 
         <div className="composer-wrapper">
 
-          <div className="composer">
+          <form
+            className="composer"
+            onSubmit={handleSubmit}
+          >
 
             <textarea
               value={question}
@@ -589,47 +718,30 @@ function App() {
                 setQuestion(event.target.value)
               }
               onKeyDown={handleKeyDown}
-              placeholder="Ask AYURLEX anything about Ayurveda IPR..."
+              placeholder="Ask a research question..."
               rows="1"
             />
 
+            <button
+              type="submit"
+              className="send-button"
+              disabled={
+                loading || !question.trim()
+              }
+            >
+              <span>
+                →
+              </span>
+            </button>
 
-            <div className="composer-footer">
+          </form>
 
-              <div className="composer-hint">
-                Press Enter to research
-              </div>
-
-              <button
-                className="send-button"
-                onClick={handleResearch}
-                disabled={
-                  loading ||
-                  !question.trim()
-                }
-              >
-                {loading ? "..." : "↑"}
-              </button>
-
-            </div>
-
-          </div>
-
-
-          <div className="composer-disclaimer">
-            AYURLEX can make mistakes. Verify important information
-            against authoritative sources.
+          <div className="composer-hint">
+            Press Enter to research · Shift + Enter
+            for new line
           </div>
 
         </div>
-
-
-        {/* FOOTER */}
-
-        <footer className="main-footer">
-          AYURLEX&nbsp;&nbsp;|&nbsp;&nbsp;
-          AI for Ayurveda. Law for Tomorrow.
-        </footer>
 
       </main>
 
