@@ -1,1566 +1,314 @@
-# 🌿 AYURLEX
+# AYURLEX: Multilingual RAG-Based IP & Regulatory Assistant for Ayurveda
 
-[![AYURLEX](https://img.shields.io/badge/AYURLEX-Ayurveda%20IPR%20Research-0f766e?style=for-the-badge)](#-ayurlex)
+[![License: Proprietary / Closed Source](https://img.shields.io/badge/License-Proprietary-blue.svg)](#)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11%2B-blue.svg)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100%2B-009688.svg)](https://fastapi.tiangolo.com/)
+[![React](https://img.shields.io/badge/React-18%2B-61DAFB.svg)](https://react.dev/)
+[![Compliance](https://img.shields.io/badge/DPDP-Compliant-green.svg)](#)
 
-### *AI for Ayurveda • Law for Tomorrow*
-
-**AYURLEX** is an AI-powered evidence-grounded research platform designed to help users explore **Ayurveda-related Intellectual Property Rights (IPR), traditional knowledge, biodiversity, and regulatory requirements**.
-
-The platform combines AI-based query understanding with structured legal and knowledge-source retrieval to provide research responses that are **jurisdiction-aware, evidence-grounded, citation-supported, and confidence-scored**.
-
-> **AYURLEX** — *Research. Protect. Preserve.*
+Ayurlex answers Ayurveda-specific intellectual property (IP) and regulatory questions with source-grounded, jurisdiction-isolated, non-hallucinated citations. The system bridges the divide between AYUSH practitioners, startups, and complex legal frameworks across patents, Geographical Indications (GI), trademarks, Access and Benefit Sharing (ABS) compliance, and drug manufacturing regulations.
 
 ---
 
-## 🎯 Vision
+## Non-Negotiable Design Tenets
 
-To create a reliable research ecosystem where **Ayurveda knowledge, innovation, intellectual property, and regulatory information** can be explored through a structured AI-powered research interface.
-
-AYURLEX focuses on four major areas:
-
-| **Area** | **Purpose** |
-| ------------------- | ------------------------------------------------------------ |
-| 🌿 **Ayurveda** | Research Ayurveda formulations, medicinal knowledge, and related information |
-| ⚖️ **IPR** | Explore patents, trademarks, copyright, GI, and designs |
-| 🧬 **Traditional Knowledge** | Research traditional knowledge and its relationship with IPR |
-| 🌱 **Biodiversity** | Understand biodiversity-related requirements and regulations |
+* **Deterministic Source Grounding:** Every legal and regulatory claim must be traceable to a specific statute, rule, treaty, or registry record.
+* **Strict Jurisdiction Isolation:** Indian and International statutory corpora reside in separate retrieval indices and are never merged in a single response unless a side-by-side comparison is requested.
+* **Safe Abstention Over Guessing:** If retrieval confidence falls below established thresholds or citation coverage is incomplete, the system abstains from answering and routes to a human facilitator.
+* **No Parametric Memory Legal Claims:** The LLM generation core is constrained strictly to retrieved context chunks and cannot cite ungrounded knowledge.
+* **DPDP Compliance by Design:** Complete alignment with the Digital Personal Data Protection (DPDP) Act, ensuring user consent capture, data minimization, strict audit logs, and data residency within India.
 
 ---
 
-## 🚀 What AYURLEX Does
+## System Architecture
 
-### 1. 🔎 Intelligent Research Interface
+The platform is structured into five isolated layers: User Interface, Orchestration, Parallel Reasoning Engines, Version-Tracked Corpus, and Guardrails.
 
-Users can ask natural-language questions about Ayurveda, IPR, biodiversity, traditional knowledge, and regulatory requirements.
+---
 
-Example:
+## Core Modules & Functional Logic
+
+### 1. Formulation Classification Decision Tree
+Before retrieval, all product-related queries pass through a short classification gate ($\le 5$ questions) to determine the regulatory bucket and condition downstream RAG prompts:
+
+| Product Bucket | Diagnostic Signal Questions | IP / ABS Regulatory Implication |
+| :--- | :--- | :--- |
+| **Classical / Generic Medicine** | Formulation and method described in First-Schedule Ayurveda texts? | Traditional Knowledge (TK); Section 3(p) patent bar; prior-art defense via TKDL. |
+| **Patent / Proprietary Medicine** | Modified classical formulation with custom branding? | Trademark focus; limited patent scope depending on novelty thresholds. |
+| **New / Non-Classical Drug** | Novel herbal combination with no classical textual precedent?[cite: 1] | Genuine patent potential; requires CDSCO safety and clinical efficacy dossier[cite: 1]. |
+| **Phytopharmaceutical** | Standardized extract meeting CDSCO regulatory criteria?[cite: 1] | Patent-eligible process/composition; full regulatory dossier pathway[cite: 1]. |
+| **Ayurveda-Aahar / Nutraceutical** | Food positioned with health or nutritional claims?[cite: 1] | FSSAI regime applicable; governed as food/nutraceutical, not drug IP[cite: 1]. |
+| **Cosmetic** | Topical application strictly for aesthetic/cosmetic claims?[cite: 1] | Cosmetic Rules compliance; industrial design and trademark focus[cite: 1]. |
+
+### 2. Jurisdiction Isolation & Comparison Engine
+* **Single Jurisdiction Mode:** UI toggle locks the session to either India (India Code, IP India, CDSCO, NBA) or International (WIPO, TRIPS, PCT, Madrid, Nagoya Protocol)[cite: 1].
+* **Comparison View:** When side-by-side analysis is explicitly requested, retrieval executes across both indices independently and outputs dual-column comparative views[cite: 1].
+
+### 3. ABS Compliance Helper & TKDL Pointer
+* **Biological Diversity Act (BDA) Assessment:** Evaluates biological resources and intended commercial applications against the BDA (2023 Amendment) and 2024 Rules to determine National Biodiversity Authority (NBA) or State Biodiversity Board (SBB) approval requirements[cite: 1].
+* **TKDL Prior-Art Pointer:** Translates formulation descriptions into relevant Traditional Knowledge Digital Library (TKDL) classification codes and prior-art entry references[cite: 1].
+
+* 
+
+### 4. Knowledge Graph (Phase 2+)
+* **Graph Schema:** Neo4j graph modeling entities including classical texts, herbs, raw ingredients, formulations, active compounds, patent applications, GI records, and rejection orders under Section 3(p)[cite: 1].
+* **Multi-Hop Queries:** Supports queries such as: *"Identify all GI-tagged formulations utilizing Ingredient X that have prior rejection citations under Section 3(p) of the Patents Act."*[cite: 1]
+
+* ---
+
+## Tech Stack
+
+| Layer | Technologies Selected |
+| :--- | :--- |
+| **Frontend** | React 18, TypeScript, Vite, TanStack Query, Zustand, Tailwind CSS, i18next[cite: 1] |
+| **Backend API** | Python 3.11+, FastAPI (Async), Pydantic v2, Celery / Redis Queue[cite: 1] |
+| **LLM & Reasoning** | Anthropic Claude API (Claude 3.5 Sonnet) via strict citation system prompts[cite: 1] |
+| **Embeddings** | BGE-M3 / Voyage Multilingual Embeddings[cite: 1] |
+| **Vector Database** | Qdrant / pgvector[cite: 1] |
+| **Sparse Lexical Search** | OpenSearch / Elasticsearch (BM25 keyword engine)[cite: 1] |
+| **Knowledge Graph** | Neo4j (Cypher Query Engine)[cite: 1] |
+| **Database & Cache** | PostgreSQL (Relational & DPDP Audit Logs), Redis (Session Cache)[cite: 1] |
+| **Voice & Localization** | Bhashini ASR/TTS & Translation APIs (Edge Localization)[cite: 1] |
+
+---
+
+## Repository Structure
 
 ```text
-Can I patent my new Ayurvedic herbal formulation in India?
-
-AYURLEX analyzes the question before generating a research response.
-
-2. 🧠 Query Understanding
-
-AYURLEX identifies the important components of a research question.
-
-The system analyzes:
-
-Research domain
-IPR type
-Research intent
-Jurisdiction
-Relevant keywords
-Language
-
-Example:
-
-Question:
-Can I patent my new Ayurvedic herbal formulation in India?
-
-Analysis:
-
-Domain        → Ayurveda
-IPR Type      → Patent
-Intent        → Patentability
-Jurisdiction  → India
-3. ⚖️ IPR Classification
-
-AYURLEX can classify research questions into relevant IPR categories.
-
-IPR Type	Example Research Area
-📜 Patent	Ayurvedic formulation patentability
-™️ Trademark	Ayurveda brand and product names
-©️ Copyright	Books, documentation, creative works
-🎨 Design	Product and packaging designs
-🌍 GI	Geographical Indication-related research
-4. 🌍 Jurisdiction Detection
-
-Legal and regulatory requirements can differ between jurisdictions.
-
-AYURLEX therefore separates research scope based on jurisdiction.
-
-🇮🇳 India
-
-Potential sources include:
-
-Indian statutes
-Indian rules
-IP India
-India Code
-Biodiversity authorities
-Traditional knowledge resources
-Ayurveda-related official sources
-🌎 International
-
-Potential sources include:
-
-WIPO
-TRIPS
-CBD
-Nagoya Protocol
-PCT
-Target-market sources
-
-This prevents information from different jurisdictions from being incorrectly mixed.
-
-5. 📚 Evidence-Grounded Research
-
-AYURLEX is designed around an important principle:
-
-Retrieve before generate.
-Verify before trust.
-Cite material claims.
-
-Instead of relying only on an LLM's internal knowledge, the research engine is designed to retrieve relevant authoritative documents before generating an answer.
-
-6. 🛡️ Evidence Verification
-
-Retrieved evidence is intended to pass through a verification layer before being used in the final response.
-
-The verification process evaluates:
-
-Source authority
-Relevance
-Jurisdiction
-Document version
-Source status
-Claim-to-evidence support
-
-This helps reduce unsupported legal and regulatory conclusions.
-
-7. 📌 Citation & Confidence
-
-Research responses are designed to include traceable sources and confidence information.
-
-Confidence levels:
-
-Level	Meaning
-🟢 High	Strong evidence and reliable source support
-🟡 Medium	Relevant evidence exists but limitations remain
-🔴 Low	Evidence is limited or uncertain
-
-When sufficient evidence is not available, AYURLEX is designed to abstain instead of presenting unsupported conclusions.
-
-🧠 AI Architecture
-                         USER QUESTION
-                              │
-                              ▼
-                  ┌──────────────────────┐
-                  │  Language Detection  │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │  Query Understanding │
-                  └──────────┬───────────┘
-                             │
-                ┌────────────┼────────────┐
-                ▼            ▼            ▼
-           IPR Type     Jurisdiction    Intent
-                │            │            │
-                └────────────┼────────────┘
-                             ▼
-                  ┌──────────────────────┐
-                  │   Research Engine    │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │   Hybrid Retrieval   │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │ Evidence Verification│
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │  Citation Mapping    │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │ Confidence Scoring   │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │    LLM Generation    │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                     FINAL RESPONSE
-🏗️ System Architecture
-                            AYURLEX
-                               │
-             ┌─────────────────┼─────────────────┐
-             │                 │                 │
-             ▼                 ▼                 ▼
-         Frontend           Backend          AI Engine
-          React             FastAPI          Research Layer
-             │                 │                 │
-             │                 ├── API           │
-             │                 ├── Auth          │
-             │                 ├── Services      │
-             │                 └── Database      │
-             │                                   │
-             │                         ┌─────────┼─────────┐
-             │                         ▼         ▼         ▼
-             │                    Retriever  Verifier  Generator
-             │                         │         │         │
-             │                         └─────────┼─────────┘
-             │                                   │
-             ▼                                   ▼
-       Research UI                       Knowledge Base
-                                               │
-                              ┌────────────────┼────────────────┐
-                              ▼                ▼                ▼
-                           India           Ayurveda       International
-                              │                │                │
-                              └────────────────┼────────────────┘
-                                               ▼
-                                         Evidence Store
-🔄 Research Workflow
-User Question
-      │
-      ▼
-Language Detection
-      │
-      ▼
-Query Analysis
-      │
-      ▼
-IPR Classification
-      │
-      ▼
-Jurisdiction Detection
-      │
-      ▼
-Source Selection
-      │
-      ▼
-Document Retrieval
-      │
-      ▼
-Evidence Verification
-      │
-      ▼
-Citation Mapping
-      │
-      ▼
-Confidence Scoring
-      │
-      ▼
-AI Response
-📚 Knowledge Sources
-
-AYURLEX is designed to prioritize authoritative and official sources.
-
-🇮🇳 India
-Indian Statutes
-Indian Rules
-India Code
-IP India
-National Biodiversity Authority
-Traditional Knowledge Resources
-Ayurveda-related Official Sources
-🌎 International
-WIPO
-TRIPS
-CBD
-Nagoya Protocol
-PCT
-Target-Market Regulatory Sources
-🗂️ Knowledge Base
-
-The knowledge base is organized according to research domain and jurisdiction.
-
-knowledge_base/
-│
-├── india/
-│
-├── ayurveda/
-│
-├── biodiversity/
-│
-├── traditional_knowledge/
-│
-└── international/
-
-Documents are intended to maintain structured metadata such as:
-
-Source Name
-Source URL
-Jurisdiction
-Document Type
-Title
-Section / Article
-Publication Date
-Effective Date
-Version
-Language
-Retrieved At
-Status
-Page Number
-🏗️ Project Structure
-AYURLEX/
+├── backend/
+│   ├── app/
+│   │   ├── main.py                        # FastAPI entrypoint and middleware
+│   │   ├── api/v1/                        # REST & Streaming Endpoints
+│   │   │   ├── chat.py                    # POST /api/v1/chat/query (SSE streaming)
+│   │   │   ├── classifier.py              # POST /api/v1/classify/formulation
+│   │   │   ├── abs.py                     # POST /api/v1/abs/check & /tkdl/search
+│   │   │   ├── jurisdiction.py            # POST /api/v1/jurisdiction/compare
+│   │   │   ├── escalation.py              # POST /api/v1/escalate
+│   │   │   └── admin.py                   # GET /api/v1/admin/corpus/status
+│   │   ├── orchestration/
+│   │   │   ├── planner.py                 # Agent task planner & decomposition
+│   │   │   └── router.py                  # Intent and jurisdiction routing
+│   │   ├── rag/
+│   │   │   ├── pipeline.py                # End-to-end RAG workflow execution
+│   │   │   ├── chunker.py                 # Statute/Section-aware parser
+│   │   │   ├── retriever.py               # Hybrid dense (Qdrant) + sparse (BM25)
+│   │   │   ├── reranker.py                # Cross-encoder reranking engine
+│   │   │   ├── citation_verifier.py       # Post-generation chunk citation validator
+│   │   │   └── confidence_scorer.py       # Spread and coverage confidence scoring
+│   │   ├── knowledge_graph/
+│   │   │   ├── schema.py                  # Node, label, and edge definitions
+│   │   │   └── queries.py                 # Multi-hop Cypher queries
+│   │   ├── abs_tkdl/
+│   │   │   ├── abs_rules_engine.py        # BDA 2023 & 2024 Rules decision logic
+│   │   │   └── tkdl_client.py             # TKDL classification lookup wrapper
+│   │   ├── llm/
+│   │   │   ├── claude_client.py           # Anthropic Claude API client
+│   │   │   └── prompts/                   # Versioned prompt templates
+│   │   ├── ingestion/
+│   │   │   ├── sources/                   # Scrapers: IndiaCode, IPIndia, NBA, CDSCO
+│   │   │   ├── normalizer.py              # OCR, structural parsing, metadata tagging
+│   │   │   ├── versioning.py              # Checksum tracking and supersession logic
+│   │   │   └── jobs.py                    # Celery scheduled ingestion tasks
+│   │   ├── data/
+│   │   │   ├── models/                    # SQLAlchemy schemas (User, Audit, Consent)
+│   │   │   ├── repositories/              # Database access layer
+│   │   │   └── migrations/                # Alembic migration environment
+│   │   ├── security/
+│   │   │   ├── auth.py                    # OAuth2 / JWT authentication
+│   │   │   ├── consent.py                 # DPDP consent logging & verification
+│   │   │   └── audit_logger.py            # Immutable write-behind audit logger
+│   │   ├── config.py                      # Global configuration & environment settings
+│   │   └── deps.py                        # Dependency injection registry
+│   ├── tests/
+│   │   ├── unit/                          # Chunker, verifier, and router unit tests
+│   │   ├── integration/                   # Pipeline and database integration tests
+│   │   └── eval/                          # Accuracy, citation, and abstention harness
+│   ├── alembic.ini
+│   ├── pyproject.toml
+│   └── requirements.txt
 │
 ├── frontend/
-│   ├── components/
-│   ├── pages/
-│   ├── services/
-│   └── utils/
-│
-├── backend/
-│   ├── api/
-│   ├── auth/
-│   ├── models/
-│   ├── schemas/
-│   ├── services/
-│   └── database/
-│
-├── ai/
-│   ├── query_analyzer/
-│   ├── classifier/
-│   ├── retriever/
-│   ├── rag/
-│   ├── verifier/
-│   ├── citation/
-│   ├── confidence/
-│   └── generation/
-│
-├── knowledge_base/
-│   ├── india/
-│   ├── ayurveda/
-│   ├── biodiversity/
-│   ├── traditional_knowledge/
-│   └── international/
-│
-├── ingestion/
-│   ├── extract/
-│   ├── clean/
-│   ├── metadata/
-│   ├── chunk/
-│   └── embed/
-│
-├── tests/
-├── docs/
-├── docker/
-│
-├── .env.example
-├── requirements.txt
-├── package.json
-└── README.md
-🛠️ Technology Stack
-Frontend
-React
-Vite
-JavaScript
-CSS
-Backend
-Python
-FastAPI
-Uvicorn
-Pydantic
-AI / Research
-Query Understanding
-IPR Classification
-Language Detection
-Jurisdiction Detection
-RAG
-Embeddings
-Hybrid Search
-Reranking
-Evidence Verification
-Citation Mapping
-Confidence Scoring
-LLM Generation
-Database
-
-Planned infrastructure:
-
-PostgreSQL
-pgvector
-Vector embeddings
-Metadata-aware retrieval
-🎨 Design System
-
-AYURLEX uses a dark research-oriented interface designed for focused
-legal and knowledge research.
-
-Visual Direction
-Background      → Dark / Charcoal
-Primary Text    → White / Light Gray
-Accent          → Teal / Cyan
-Interface       → Minimal
-Layout          → Conversational Research
-
-The interface follows a clean conversational research experience with:
-
-Left navigation
-Research workspace
-Recent research
-Knowledge resources
-Evidence sections
-Confidence indicators
-Bottom research composer
-👥 Target Users
-👨‍🔬 Ayurveda Researchers
-Research traditional formulations
-Explore IPR possibilities
-Find authoritative sources
-Compare regulatory requirements
-💡 Ayurveda Innovators & Startups
-Explore patent-related questions
-Research trademarks
-Understand biodiversity considerations
-Identify relevant legal sources
-🎓 Students & Academics
-Academic research
-Ayurveda IPR studies
-Traditional knowledge research
-Regulatory research
-⚖️ Legal & IPR Researchers
-Source discovery
-Jurisdiction-specific research
-Evidence collection
-Legal research assistance
-🔐 Security & Privacy
-
-AYURLEX is designed with research integrity and responsible AI in mind.
-
-The architecture is intended to include:
-
-Environment-based secrets
-Protected backend APIs
-Role-based access
-Source traceability
-Document version tracking
-Jurisdiction separation
-
-🔒 API keys, credentials, and environment secrets should never be committed to the repository.
-
-⚠️ Responsible AI
-
-AYURLEX is designed as a research assistance platform, not an autonomous legal decision-maker.
-
-The system should:
-
-Prefer authoritative sources
-Show evidence for important claims
-Identify uncertainty
-Track source status and version
-Avoid unsupported conclusions
-Abstain when evidence is insufficient
-📌 Current Development Status
-Phase 1 — Foundation
- Project structure
- React + Vite frontend
- FastAPI backend
- Research interface
- Dark research UI
- Query analysis
- IPR classification
- Jurisdiction detection
- Frontend ↔ Backend integration
-Phase 2 — AI Research Engine
- Automatic language detection
- Advanced query understanding
- Knowledge-base ingestion
- Document extraction
- Document cleaning
- Metadata processing
- Document chunking
- Embeddings
- Vector database
- Hybrid retrieval
- Reranking
-Phase 3 — Evidence Layer
- Evidence verification
- Claim-to-evidence mapping
- Citation generation
- Confidence scoring
- Source version tracking
- Safe abstention
-Phase 4 — LLM Research
- LLM integration
- Evidence-grounded answer generation
- Same-language response generation
- Research summaries
- Structured legal research responses
-Phase 5 — Platform
- Authentication
- Saved research
- Research history
- Knowledge Base interface
- Legal Sources interface
- Admin dashboard
- Advanced multilingual support
-🗺️ Roadmap
-                 AYURLEX ROADMAP
-
-                    FOUNDATION
-                       │
-                       ▼
-              Query Understanding
-                       │
-                       ▼
-               IPR Classification
-                       │
-                       ▼
-             Jurisdiction Detection
-                       │
-                       ▼
-                Knowledge Base
-                       │
-                       ▼
-                    RAG
-                       │
-                       ▼
-             Evidence Verification
-                       │
-                       ▼
-                   Citations
-                       │
-                       ▼
-              Confidence Scoring
-                       │
-                       ▼
-               LLM Generation
-                       │
-                       ▼
-             Intelligent Research
-🌱 Long-Term Vision
-
-AYURLEX aims to become a specialized research intelligence platform
-connecting:
-
-             AYURVEDA
-                 │
-        ┌────────┼────────┐
-        ▼        ▼        ▼
-       IPR    Regulation  TK
-        │        │        │
-        └────────┼────────┘
-                 ▼
-            Biodiversity
-                 │
-                 ▼
-          Evidence + AI
-                 │
-                 ▼
-        Trusted Research
-
-The long-term objective is to make complex Ayurveda-related IPR and
-regulatory research more accessible while maintaining:
-
-Evidence traceability
-Source authority
-Jurisdiction awareness
-Version awareness
-Citation support
-Responsible AI
-🔬 Example Use Cases
-Patentability Research
-Can I patent my new Ayurvedic herbal formulation in India?
-Trademark Research
-Can I register a trademark for my Ayurvedic product brand?
-Traditional Knowledge
-How does traditional Ayurvedic knowledge affect patent research?
-Biodiversity
-What biodiversity requirements apply when using medicinal plants in India?
-International Research
-What international IP considerations apply to an Ayurvedic product?
-📖 Standard AYURLEX Response Structure
-
-A future AYURLEX research response is designed around:
-
-Answer
-   ↓
-Key Evidence
-   ↓
-Research Sources
-   ↓
-Citations
-   ↓
-Confidence
-   ↓
-Important Notice
-
-This structure helps users understand not only what the answer is,
-but also why the answer is supported.
-
-⚠️ Legal Disclaimer
-
-AYURLEX is an AI-powered research assistance platform.
-
-The information provided by AYURLEX is intended for research and
-informational purposes only and should not be treated as legal advice,
-professional legal opinion, patent advice, or regulatory approval.
-
-Users should verify important information against current authoritative
-sources and consult a qualified professional where appropriate.
-
-📄 Documentation
-
-Project documentation will be maintained in:
-
-docs/
-├── project-overview.md
-├── architecture.md
-├── api-documentation.md
-├── ai-architecture.md
-└── research-workflow.md
-👨‍💻 Team
-Team AYURLEX
-AI for Ayurveda. Law for Tomorrow.
-
-AYURLEX is being developed as a research-focused technology project
-at the intersection of:
-
-Artificial Intelligence
-        ×
-Ayurveda
-        ×
-Intellectual Property
-        ×
-Traditional Knowledge
-        ×
-Biodiversity
-        ×
-Regulatory Research
-⭐ Project
-
-If you find the project useful or interesting, consider giving the
-repository a ⭐.
-
-AYURLEX
-
-Research. Protect. Preserve.
-
-📜 License
-
-License information will be added as the project matures.
-
-
-हा format **तू दिलेल्या Samanvay README च्या structure/feel प्रमाणे** आहे—पण AYURLEX च्या actual architecture, current implementation आणि future roadmap वर आधारित आहे.
-Pasted markdown.md
-File
-he proper formate made kr 
-
-हो. आता समजलं — तुला content पेक्षा formatting proper पाहिजे, म्हणजे GitHub वर उघडल्यावर README clean, professional आणि व्यवस्थित दिसला पाहिजे. तुझ्या AYURLEX blueprint मधली terminology/structure ठेवून तयार केलेला format खाली आहे.
-
-मी याला Samanvay-style GitHub README प्रमाणे ठेवतो: proper headings, tables, code diagrams, checklists, sections आणि clean spacing.
-
-एक correction: आधीच्या README मध्ये काही future modules current structure म्हणून दाखवले होते. खालील version मध्ये current + planned स्पष्ट वेगळे आहेत.
-
-तुला हवं असेल तर पुढच्या message मध्ये मी हे थेट README.md file म्हणून तयार करून download link देऊ शकतो.
-
-yes
-
-Done ✅
-
-हा proper formatted, GitHub-ready README.md तयार केला आहे:
-
-📄 Download README.md
-
-हा file तुझ्या AYURLEX project च्या root folder मध्ये ठेव:
-
-AYURLEX/
-├── frontend/
-├── backend/
-├── ai/
-├── knowledge_base/
-├── ingestion/
-├── tests/
-├── docs/
-├── requirements.txt
-├── package.json
-└── README.md   ← हा file
-
-नंतर:
-
-git add README.md
-git commit -m "Add professional README"
-git push
-
-GitHub वर refresh केल्यावर README proper professional format मध्ये दिसेल. 
-
-README.md
-Document
-
-README.md
-🌿 AYURLEX
-AI-Powered Evidence-Grounded Platform for Ayurveda IPR & Regulatory Research
-
-AYURLEX is an AI-powered research platform designed to help students, researchers, innovators, and Ayurveda-focused users investigate Intellectual Property Rights (IPR), traditional knowledge, biodiversity, and regulatory questions.
-
-The platform is designed around a source-grounded research pipeline that retrieves evidence, verifies it, cites material claims, and communicates confidence.
-
-AYURLEX — Research. Protect. Preserve.
-
-🎯 Vision
-
-To make Ayurveda-related IPR and regulatory research faster, more structured, traceable, and evidence-grounded.
-
-AYURLEX brings together:
-
-Research Area	Purpose
-🌿 Ayurveda	Research Ayurveda formulations, products, and related knowledge
-⚖️ IPR	Explore patents, trademarks, GI, copyright, and design questions
-📚 Traditional Knowledge	Research traditional knowledge and prior-art context
-🌱 Biodiversity	Explore biodiversity and access-and-benefit-sharing requirements
-🌍 International	Research international IPR and regulatory frameworks
-🚀 What AYURLEX Does
-1. 🔎 Natural-Language Research
-
-Users can ask research questions in natural language.
-
-Example:
-
-Can I patent my new Ayurvedic herbal formulation in India?
-
-AYURLEX converts the question into a structured research context before deeper evidence retrieval.
-
-2. 🧠 Query Understanding
-
-AYURLEX identifies important components of a research question:
-
-Domain
-IPR type
-Jurisdiction
-Research intent
-Keywords
-Language
-
-Example:
-
-Question:
-Can I patent my new Ayurvedic herbal formulation in India?
-
-Analysis:
-
-Domain        → Ayurveda
-IPR Type      → Patent
-Intent        → Patentability
-Jurisdiction  → India
-3. ⚖️ IPR Classification
-
-AYURLEX supports research across major IPR categories:
-
-IPR Type	Example Research Area
-📜 Patent	Ayurvedic formulation patentability
-™️ Trademark	Ayurveda product and brand names
-🌍 GI	Geographical Indication research
-©️ Copyright	Documentation and creative works
-🎨 Design	Product and packaging designs
-4. 🌍 Jurisdiction-Aware Research
-
-Legal and regulatory requirements differ between jurisdictions.
-
-AYURLEX is designed to keep research contexts separated.
-
-🇮🇳 India
-
-Potential source categories include:
-
-Indian statutes and rules
-India Code
-IP India
-Ayurveda-related official sources
-Biodiversity authorities
-Traditional knowledge resources
-🌎 International
-
-Potential source categories include:
-
-WIPO
-TRIPS
-CBD
-Nagoya Protocol
-PCT
-Target-market sources
-
-Jurisdiction Rule: Indian and international provisions must not be incorrectly mixed.
-
-5. 📚 Evidence-Grounded Research
-
-AYURLEX is built around three core principles:
-
-Retrieve before generate.
-Verify before trust.
-Cite material claims.
-
-The intended research flow retrieves relevant evidence before an LLM generates the final explanation.
-
-6. 🛡️ Evidence Verification
-
-Retrieved evidence is evaluated before being used for the final response.
-
-The verification layer considers:
-
-Source authority
-Relevance
-Jurisdiction
-Document version
-Source status
-Claim-to-evidence support
-
-If evidence is insufficient or conflicting, the system should clarify or abstain rather than invent a conclusion.
-
-7. 📌 Citation & Confidence
-
-AYURLEX is designed to connect important claims with their supporting source records.
-
-Claim
-  ↓
-Evidence Chunk
-  ↓
-Source Record
-  ↓
-Section / Article / Page
-  ↓
-Jurisdiction + Version
-
-Confidence levels:
-
-Level	Meaning
-🟢 High	Strong, relevant, directly supporting verified evidence
-🟡 Medium	Relevant evidence exists but has limitations or gaps
-🔴 Low	Evidence is weak, conflicting, or insufficient
-🧠 AI Architecture
-                         USER QUESTION
-                              │
-                              ▼
-                  ┌──────────────────────┐
-                  │  Language Detection  │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │  Query Understanding │
-                  └──────────┬───────────┘
-                             │
-                  ┌──────────┼──────────┐
-                  ▼          ▼          ▼
-             IPR Type   Jurisdiction  Intent
-                  │          │          │
-                  └──────────┼──────────┘
-                             ▼
-                  ┌──────────────────────┐
-                  │   RAG Research       │
-                  │       Engine         │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │ Knowledge + Vector   │
-                  │       Store          │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │ Evidence Verification│
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │    LLM Generation    │
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                  ┌──────────────────────┐
-                  │ Citation + Confidence│
-                  └──────────┬───────────┘
-                             │
-                             ▼
-                     FINAL RESPONSE
-🏗️ System Architecture
-                            AYURLEX
-                               │
-             ┌─────────────────┼─────────────────┐
-             │                 │                 │
-             ▼                 ▼                 ▼
-         Frontend           Backend          AI Engine
-          React             FastAPI          Research Layer
-             │                 │                 │
-             │                 ├── API           │
-             │                 ├── Auth          │
-             │                 ├── Services      │
-             │                 └── Database      │
-             │                                   │
-             │                         ┌─────────┼─────────┐
-             │                         ▼         ▼         ▼
-             │                    Retriever  Verifier  Generator
-             │                         │         │         │
-             │                         └─────────┼─────────┘
-             │                                   │
-             ▼                                   ▼
-       Research Interface                 Knowledge Base
-                                               │
-                              ┌────────────────┼────────────────┐
-                              ▼                ▼                ▼
-                           India           Ayurveda       International
-                              │                │                │
-                              └────────────────┼────────────────┘
-                                               ▼
-                                         Evidence Store
-🔄 Core Research Workflow
-User Question
-      │
-      ▼
-Language Detection
-      │
-      ▼
-Query Understanding
-      │
-      ▼
-IPR Classification
-      │
-      ▼
-Jurisdiction Detection
-      │
-      ▼
-Source Selection
-      │
-      ▼
-Document Retrieval
-      │
-      ▼
-Evidence Verification
-      │
-      ▼
-Citation Mapping
-      │
-      ▼
-Confidence Scoring
-      │
-      ▼
-LLM Answer Generation
-      │
-      ▼
-Final Research Response
-📚 Knowledge Sources
-
-AYURLEX is designed to prioritize authoritative public sources.
-
-🇮🇳 India
-Source Category	Research Use
-India Code	Indian Acts, rules, sections, amendments and legal text
-IP India	Patents, trademarks, designs and GI information
-National Biodiversity Authority	Biodiversity and ABS-related information
-Traditional Knowledge Resources	Traditional knowledge and prior-art context
-Ayurveda Official Sources	Ayurveda-related regulatory and knowledge material
-🌎 International
-Source Category	Research Use
-WIPO	International intellectual property information
-TRIPS	International IP framework
-CBD	Biodiversity framework
-Nagoya Protocol	Access and benefit-sharing context
-PCT	International patent application framework
-Target-Market Sources	Country-specific research where applicable
-
-Unofficial summaries may support research, but authoritative sources should remain the primary legal authority whenever available.
-
-🗂️ Knowledge Base
-knowledge_base/
-│
-├── india/
-│   ├── patents/
-│   ├── trademarks/
-│   ├── gi/
-│   ├── copyright/
-│   └── designs/
-│
-├── ayurveda/
-│
-├── biodiversity/
-│
-├── traditional_knowledge/
-│
-└── international/
-    ├── wipo/
-    ├── trips/
-    ├── cbd/
-    ├── nagoya/
-    └── pct/
-Metadata Model
-
-Each research document/chunk is intended to preserve:
-
-Source Name
-Source URL
-Jurisdiction
-Document Type
-Title
-Section / Article
-Publication Date
-Effective Date
-Version
-Language
-Retrieved At
-Status
-Page Number
-
-This supports source provenance, version tracking, and traceability.
-
-📥 Document Ingestion Pipeline
-Official / Authoritative Sources
-              │
-              ▼
-    Source Discovery & Collection
-              │
-              ▼
-       PDF / HTML / Record
-              │
-              ▼
-        Text Extraction
-              │
-              ▼
-      Cleaning & Normalisation
-              │
-              ▼
-       Metadata Tagging
-              │
-              ▼
-       Document Versioning
-              │
-              ▼
-          Chunking
-              │
-              ▼
-         Embeddings
-              │
-              ▼
-      PostgreSQL + pgvector
-              │
-              ▼
-       RAG Research Engine
-Ingestion Principles
-Preserve original source URL
-Preserve retrieval date
-Track document version
-Track effective date and status where available
-Preserve section/page references where possible
-Do not silently replace older versions
-Respect source access and licensing conditions
-🔎 RAG Research Engine
-
-AYURLEX uses Retrieval-Augmented Generation (RAG) to provide relevant evidence to the answer-generation layer.
-
-Retrieval Strategy
-Retrieval Method	Purpose
-🔹 Semantic Search	Find evidence with similar meaning
-🔹 Keyword Search	Capture exact legal and regulatory terminology
-🔹 Metadata Filtering	Restrict by jurisdiction, document type, status, etc.
-🔹 Reranking	Prioritize the strongest retrieved candidates
-RAG Flow
-User Question
-      ↓
-Query Embedding + Keyword Extraction
-      ↓
-Jurisdiction / Metadata Filtering
-      ↓
-Vector + Keyword Retrieval
-      ↓
-Relevant Evidence Chunks
-      ↓
-Optional Reranking
-      ↓
-Evidence Verification
-      ↓
-LLM Generation
-      ↓
-Citation Validation
-      ↓
-Answer + Confidence
-🛡️ Evidence Verification
-
-Evidence verification acts as the trust gate between retrieval and generation.
-
-Retrieved Evidence
-       │
-       ▼
-Source Authority?
-       │
-       ▼
-Relevant to Question?
-       │
-       ▼
-Correct Jurisdiction?
-       │
-       ▼
-Current / Applicable Version?
-       │
-       ▼
-Does Evidence Support Claim?
-       │
-   ┌───┴────┐
-   ▼        ▼
- VERIFIED  NOT VERIFIED
-   │        │
-   ▼        ▼
-  LLM    Clarify / Abstain
-🧾 Standard Research Response
-
-AYURLEX is designed around a structured response format:
-
-ANSWER
-│
-├── Plain-language research explanation
-│
-├── KEY EVIDENCE
-│   └── Verified evidence references
-│
-├── SOURCES
-│   └── Source + Section/Page + Jurisdiction + Version
-│
-├── CONFIDENCE
-│   └── High / Medium / Low
-│
-└── NOTICE
-    └── Information only — not legal advice
-👥 Target Users
-🎓 Students
-Understand IPR concepts
-Conduct academic research
-Explore Ayurveda-related legal questions
-🔬 Researchers
-Find authoritative evidence
-Trace claims to source documents
-Conduct structured research
-💡 Ayurveda Innovators
-Conduct preliminary patent research
-Explore trademark questions
-Research biodiversity considerations
-🏥 Ayurveda Practitioners
-Access explainable regulatory information
-Explore relevant official sources
-⚖️ IPR / Legal Researchers
-Discover relevant sources
-Compare jurisdiction-specific information
-Build evidence-backed research workflows
-🗃️ Knowledge Administrators
-Maintain source quality
-Manage document versions
-Review metadata
-Maintain corpus provenance
-🛠️ Technology Stack
-Frontend
-React
-Vite
-JavaScript
-CSS
-Backend
-Python
-FastAPI
-Uvicorn
-Pydantic
-AI / Research Layer
-Query Understanding
-IPR Classification
-Jurisdiction Detection
-Language Detection
-Retrieval-Augmented Generation
-Embeddings
-Hybrid Search
-Reranking
-Evidence Verification
-Citation Mapping
-Confidence Scoring
-LLM Generation
-Planned Database
-PostgreSQL
-pgvector
-Vector embeddings
-Metadata-aware retrieval
-🎨 Design System
-
-AYURLEX uses a focused, dark research interface.
-
-Element	Design Direction
-🖤 Background	Dark / Charcoal
-⚪ Typography	White / Light Gray
-🟢 Accent	Teal / Cyan
-💬 Interface	Conversational Research
-📚 Layout	Research + Evidence focused
-
-The interface is designed around:
-
-Minimal navigation
-Conversational research
-Evidence sections
-Source visibility
-Confidence indicators
-Clear legal disclaimer
-🔐 Security & Governance
-
-AYURLEX is designed with research integrity and responsible AI in mind.
-
-Security
-Environment-based secrets
-Protected backend APIs
-Role-based access
-Secure credential handling
-Audit logging for important administrative actions
-Governance
-Source provenance preservation
-Retrieval-date tracking
-Version/status tracking
-Jurisdiction separation
-No fabricated legal sources
-No unsupported legal conclusions
-Corpus review and re-indexing
-
-🔒 API keys, credentials, and environment secrets should never be committed to GitHub.
-
-⚠️ Responsible AI & Legal Guardrails
-
-AYURLEX is a research assistance platform.
-
-It is not intended to replace:
-
-Qualified lawyers
-Patent professionals
-Regulatory authorities
-Official legal determinations
-
-The system should:
-
-Prefer authoritative evidence
-Cite material claims
-Identify uncertainty
-Preserve legal qualifiers
-Separate jurisdictions
-Abstain when evidence is insufficient
-
-AI assists research; it does not replace professional legal advice.
-
-📁 Project Structure
-AYURLEX/
-│
-├── frontend/
-│   ├── components/
-│   ├── pages/
-│   ├── services/
-│   └── utils/
-│
-├── backend/
-│   ├── api/
-│   ├── auth/
-│   ├── models/
-│   ├── schemas/
-│   ├── services/
-│   └── database/
-│
-├── ai/
-│   ├── query_analyzer/
-│   ├── classifier/
-│   ├── retriever/
-│   ├── rag/
-│   ├── verifier/
-│   ├── citation/
-│   ├── confidence/
-│   └── generation/
-│
-├── knowledge_base/
-│   ├── india/
-│   ├── ayurveda/
-│   ├── biodiversity/
-│   ├── traditional_knowledge/
-│   └── international/
-│
-├── ingestion/
-│   ├── extract/
-│   ├── clean/
-│   ├── metadata/
-│   ├── chunk/
-│   └── embed/
-│
-├── tests/
-├── docs/
-├── docker/
-│
-├── .env.example
-├── requirements.txt
-├── package.json
-└── README.md
-💻 Getting Started
-1. Clone the repository
-git clone <YOUR-GITHUB-REPOSITORY-URL>
-cd AYURLEX
-2. Create Python virtual environment
+│   ├── src/
+│   │   ├── app/                           # App shell, routing, and provider bindings
+│   │   │   ├── App.tsx
+│   │   │   ├── router.tsx
+│   │   │   └── providers/                 # QueryClient, Theme, Auth, i18n
+│   │   ├── features/                      # Domain feature modules
+│   │   │   ├── chat/                      # MessageBubble, CitationChip, useChatStream
+│   │   │   ├── jurisdiction-toggle/       # India/International switch component
+│   │   │   ├── formulation-classifier/    # Interactive decision tree stepper
+│   │   │   ├── abs-tkdl/                  # ABS assessment wizard and TKDL cards
+│   │   │   ├── escalation/                # Human IP facilitator handoff modal
+│   │   │   └── voice-multilingual/        # Bhashini ASR/TTS controls (Phase 4)
+│   │   └── shared/
+│   │       ├── ui/                        # Buttons, modals, persistent disclaimer banner
+│   │       ├── api-client/                # Axios instance with auth/DPDP interceptors
+│   │       ├── i18n/                      # Localization translation bundles
+│   │       └── types/                     # Shared TypeScript interfaces
+│   ├── vite.config.ts
+│   └── package.json
+└── docker-compose.yml
+```[cite: 1]
+
+---
+
+## API Specifications
+
+### `POST /api/v1/chat/query`
+Main retrieval and streaming inference endpoint[cite: 1].
+
+* **Request Body:**
+```json
+{
+  "query": "Can a classical formulation from the First Schedule be patented if extracted with a novel solvent?",
+  "jurisdiction": "INDIA",
+  "language": "en",
+  "session_id": "8f3b2d1c-4e5a-4e2a-bb33-0d5f8a6b1234",
+  "classification_bucket": "CLASSICAL_MEDICINE"
+}
+```[cite: 1]
+
+* **Streaming Server-Sent Events (SSE) Output:**
+```json
+data: {"type": "chunk", "text": "Under Section 3(p) of the Patents Act, 1970..."}
+data: {"type": "citation", "citation_id": "IND-PAT-SEC3P", "source": "The Patents Act, 1970, s. 3(p)", "url": "[https://ipindia.gov.in/](https://ipindia.gov.in/)..."}
+data: {"type": "confidence", "score": 0.94, "status": "GROUNDED"}
+data: {"type": "disclaimer", "text": "Information provided is for research and educational purposes only and does not constitute formal legal advice."}
+```[cite: 1]
+
+### `POST /api/v1/classify/formulation`
+Initiates or advances the formulation classification decision tree[cite: 1].
+
+* **Request Body:**
+```json
+{
+  "step": 1,
+  "answers": {
+    "is_in_first_schedule": true,
+    "has_modified_excipients": false
+  }
+}
+```[cite: 1]
+
+* **Response Body:**
+```json
+{
+  "completed": true,
+  "bucket": "CLASSICAL_GENERIC",
+  "ip_posture": "Traditional Knowledge; Section 3(p) patent bar; defense via TKDL",
+  "recommended_route": "TRADEMARK_ONLY"
+}
+```[cite: 1]
+
+### `POST /api/v1/abs/check`
+Evaluates Access and Benefit Sharing obligations under Indian biodiversity law[cite: 1].
+
+* **Request Body:**
+```json
+{
+  "resource_name": "Withania somnifera",
+  "source_state": "Madhya Pradesh",
+  "applicant_type": "INDIAN_ENTITY_WITH_FOREIGN_INVESTMENT",
+  "intended_use": "COMMERCIAL_UTILIZATION"
+}
+```[cite: 1]
+
+* **Response Body:**
+```json
+{
+  "nba_approval_required": true,
+  "sbb_intimation_required": true,
+  "statutory_basis": "Biological Diversity Act (2023 Amendment), Section 3(2)",
+  "form_required": "Form I (NBA Approval)"
+}
+```[cite: 1]
+
+---
+
+## Data Pipeline & Ingestion
+
+---
+
+## Evaluation Framework & Benchmarking
+
+The system is continuously benchmarked against an expert-curated gold standard evaluation suite[cite: 1]:
+
+* **Answer Accuracy:** Expert-reviewed against gold standard Q&A sets across classical texts, new drugs, and GI filings[cite: 1].
+* **Citation Precision & Recall:** Precision and recall scoring of cited statutory sections against ground-truth legal provisions[cite: 1].
+* **Safe Abstention Rate:** Automated validation measuring the frequency of correct "insufficient information" responses when subjected to out-of-scope or adversarial inputs[cite: 1].
+* **Jurisdiction Isolation Integrity:** Automated validation ensuring zero cross-contamination between Indian and International statutory citations in single-jurisdiction queries[cite: 1].
+* **Multilingual Translation Fidelity:** Back-translation BLEU/COMET scoring combined with native-speaker legal review to prevent statutory drift[cite: 1].
+
+---
+
+## Risk Mitigation Matrix
+
+| Risk | Architecture Mitigation Strategy |
+| :--- | :--- |
+| **Hallucinated Statutory Citations** | Strict citation constraint: Generation is restricted solely to retrieved chunk IDs. A post-generation verification step strips any ungrounded text[cite: 1]. |
+| **Jurisdiction Bleed** | Physical isolation of retrieval indices between Indian and International law (not relying on LLM prompting alone)[cite: 1]. |
+| **Stale Statutory Information** | Version-tracked corpus architecture, checksum-based change detection, scheduled Celery recrawls, and mandatory "As-of" timestamps on all outputs[cite: 1]. |
+| **Misinterpretation as Legal Advice** | Prominent system-level disclaimers on every interaction, combined with a one-click escalation bridge to qualified IP facilitators[cite: 1]. |
+
+---
+
+## Development & Installation Guide
+
+### Prerequisites
+* Python 3.11+
+* Node.js 18+ and npm
+* Docker Engine 24+ and Docker Compose
+* PostgreSQL 15+ (with `pgvector` extension)
+* OpenSearch 2.11+
+* Neo4j 5+ (for Phase 2 graph features)
+
+### 1. Repository Setup
+```bash
+git clone [https://github.com/your-organization/ayurlex.git](https://github.com/your-organization/ayurlex.git)
+cd ayurlex
+# Backend configuration
+cp backend/.env.example backend/.env
+
+# Frontend configuration
+cp frontend/.env.example frontend/.env
+
+PROJECT_NAME=Ayurlex
+ENVIRONMENT=development
+DATABASE_URL=postgresql+asyncpg://postgres:postgres@localhost:5432/ayurlex_db
+OPENSEARCH_URL=http://localhost:9200
+NEO4J_URI=bolt://localhost:7687
+NEO4J_USER=neo4j
+NEO4J_PASSWORD=password
+ANTHROPIC_API_KEY=your-anthropic-claude-key
+BHASHINI_API_KEY=your-bhashini-key
+BHASHINI_USER_ID=your-bhashini-user-id
+DATA_RESIDENCY_REGION=IN
+
+docker-compose up -d --build
+
+cd backend
+
+# Initialize virtual environment
 python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-Activate it:
-
-.\venv\Scripts\Activate.ps1
-3. Install backend dependencies
+# Install dependencies
 pip install -r requirements.txt
-4. Start the FastAPI backend
-python -m uvicorn backend.main:app --reload
 
-Backend:
+# Run database migrations
+alembic upgrade head
 
-http://127.0.0.1:8000
+# Run initial statutory corpus ingestion (India Code + IP India)
+python scripts/bootstrap_corpus.py --source initial_statutes
 
-API documentation:
 
-http://127.0.0.1:8000/docs
-5. Start the frontend
-
-Open another terminal:
+# Launch FastAPI development server
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 cd frontend
+
+# Install Node dependencies
 npm install
+
+# Start Vite development server
 npm run dev
-
-Frontend:
-
-http://localhost:5173
-🧪 Example Research Queries
-Patentability
-Can I patent my new Ayurvedic herbal formulation in India?
-Trademark
-Can I register a trademark for my Ayurvedic product brand?
-Traditional Knowledge
-How does traditional Ayurvedic knowledge affect patent research?
-Biodiversity
-What biodiversity requirements apply when using medicinal plants in India?
-International
-What international IP considerations apply to an Ayurvedic product?
-📌 Current Development Status
-Phase 1 — Foundation
-
-Project setup
-
-React + Vite frontend
-
-FastAPI backend
-
-Research interface
-
-Dark research UI
-
-Query analysis
-
-IPR classification
-
-Jurisdiction detection
-
-Frontend ↔ Backend integration
-
-Phase 2 — Research Intelligence
-
-Automatic language detection
-
-Advanced query understanding
-
-Knowledge-base ingestion
-
-Document extraction
-
-Document cleaning
-
-Metadata processing
-
-Document chunking
-
-Embeddings
-
-Vector database
-
-Hybrid retrieval
-
-Reranking
-
-Phase 3 — Evidence Layer
-
-Evidence verification
-
-Claim-to-evidence mapping
-
-Citation generation
-
-Confidence scoring
-
-Source version tracking
-
-Safe abstention
-
-Phase 4 — LLM Research
-
-LLM integration
-
-Evidence-grounded answer generation
-
-Same-language response generation
-
-Structured research responses
-
-Phase 5 — Platform
-
-Authentication
-
-Saved research
-
-Research history
-
-Knowledge Base interface
-
-Legal Sources interface
-
-Admin dashboard
-
-Advanced multilingual support
-
-🗺️ Development Roadmap
-                    AYURLEX
-                       │
-                       ▼
-                  Foundation
-                       │
-                       ▼
-             Query Understanding
-                       │
-                       ▼
-              IPR Classification
-                       │
-                       ▼
-             Jurisdiction Detection
-                       │
-                       ▼
-                 Knowledge Base
-                       │
-                       ▼
-                      RAG
-                       │
-                       ▼
-             Evidence Verification
-                       │
-                       ▼
-                   Citations
-                       │
-                       ▼
-              Confidence Scoring
-                       │
-                       ▼
-                LLM Generation
-                       │
-                       ▼
-             Trusted Research
-🔬 Evaluation Framework
-
-AYURLEX is intended to evaluate research quality using:
-
-Metric	What It Measures
-Answer Accuracy	Whether answers reflect verified evidence
-Citation Correctness	Whether citations actually support claims
-Retrieval Quality	Whether relevant evidence appears in retrieved results
-Source Provenance	Whether evidence traces to authoritative sources
-Safe Abstention	Whether the system avoids unsupported answers
-Jurisdiction Accuracy	Whether the correct legal context is used
-Multilingual Quality	Whether meaning is preserved across languages
-Response Usefulness	Clarity and usefulness to researchers
-🌱 Long-Term Vision
-
-AYURLEX aims to connect:
-
-                 AYURVEDA
-                     │
-          ┌──────────┼──────────┐
-          ▼          ▼          ▼
-         IPR     Regulation     TK
-          │          │          │
-          └──────────┼──────────┘
-                     ▼
-                Biodiversity
-                     │
-                     ▼
-                  Evidence
-                     │
-                     ▼
-                 AI Research
-                     │
-                     ▼
-              Trusted Knowledge
-
-The long-term goal is to make complex Ayurveda-related IPR and regulatory research more accessible while maintaining:
-
-Evidence traceability
-Source authority
-Jurisdiction awareness
-Version awareness
-Citation support
-Responsible AI
-🎯 MVP Strategy
-
-Build depth, not breadth.
-
-The MVP focuses on one polished, end-to-end research journey:
-
-Question
-   ↓
-Query Analysis
-   ↓
-Jurisdiction
-   ↓
-Retrieval
-   ↓
-Trusted Evidence
-   ↓
-Verification
-   ↓
-Answer
-   ↓
-Citation
-   ↓
-Confidence
-⚠️ Legal Disclaimer
-
-AYURLEX provides information for research and informational purposes only.
-
-It does not constitute legal advice, patent advice, regulatory advice, or an official legal determination.
-
-Important decisions should be verified against current authoritative sources and, where appropriate, reviewed by qualified professionals.
-
-👨‍💻 Team
-Team AYURLEX
-AI for Ayurveda. Law for Tomorrow.
-
-AYURLEX is being developed at the intersection of:
-
-Artificial Intelligence
-        ×
-Ayurveda
-        ×
-Intellectual Property
-        ×
-Traditional Knowledge
-        ×
-Biodiversity
-        ×
-Regulatory Research
-📄 Documentation
-
-Project documentation will be maintained under:
-
-docs/
-├── project-overview.md
-├── architecture.md
-├── api-documentation.md
-├── ai-architecture.md
-└── research-workflow.md
-⭐ Project
-
-If you find AYURLEX useful or interesting, consider giving the repository a ⭐.
-
-AYURLEX
-
-Research. Protect. Preserve.
-
-📜 License
-
-License information will be added as the project matures.
